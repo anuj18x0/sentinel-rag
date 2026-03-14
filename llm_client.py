@@ -24,23 +24,25 @@ class LLMClient:
             history_str = "\n".join([f"{m['role']}: {m['content']}" for m in history])
             history_str = f"\n\nConversation History:\n{history_str}"
 
-        prompt = f"""You are SentinelAI DevOps Assistant, an expert AI embedded in an API monitoring platform.
-You analyze real-time monitoring data and retrieved insights to answer questions about system health.
+        prompt = f"""You are an API reliability assistant.
 
-Context from monitoring database and vector store:
+Use ONLY the provided context.
+
+If the context does not contain enough information to determine a root cause, do not just say "insufficient data". Explain that there is not enough historical or incident data to determine the exact cause, but summarize what the metrics DO show.
+
+If the user is asking a general question about metrics (e.g. "what is the average", "highest latency"), answer directly based on the context without providing probable cause or recommended action.
+
+For incident or root cause questions, provide:
+1. probable cause
+2. confidence level
+3. recommended action
+
+Context:
 {context}
 
 {history_str}
 
-User Question: {question}
-
-Instructions:
-1. Be concise, technical, and actionable.
-2. Use markdown (bold, bullet points) for readability.
-3. If data shows issues, suggest root causes and remediation steps.
-4. Base your answer ONLY on the context provided.
-
-Response:"""
+User Question: {question}"""
         return prompt
 
 llm_client = LLMClient()

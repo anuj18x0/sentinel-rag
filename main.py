@@ -22,7 +22,7 @@ class QueryResponse(BaseModel):
 # ── In-memory caches ─────────────────────────────────────────────
 sessions: dict = {}                     # session_id → list of messages
 response_cache: dict = {}               # hash → (answer, timestamp)
-RESPONSE_CACHE_TTL = 60                 # seconds
+RESPONSE_CACHE_TTL = 300                 # seconds
 
 def _cache_key(question: str, context: str) -> str:
     """Generate a cache key from question + context hash."""
@@ -51,14 +51,22 @@ async def query_rag(request: QueryRequest):
 
         # ── 3. Semantic search in vector store ─────────────────────
         try:
-            docs = vector_store.search(request.question, limit=3)
-            vector_context = "\n".join([doc.get("text", "") for doc in docs]) if docs else ""
+            results = vector_store.search(request.question, limit=3)
+            # Apply similarity threshold
+            valid_docs = [r["payload"].get("text", "") for r in results if r["score"] >= 0.7]
+            vector_context = "\n".join(valid_docs) if valid_docs else ""
+            
+            # Rule-based response if context is empty
+            if not valid_docs and not request.context:
+                return QueryResponse(answer="No related incidents found in historical data.", cached=False)
         except Exception as e:
             print(f"Vector search skipped: {e}")
             vector_context = ""
 
         # ── 4. Combine contexts ────────────────────────────────────
         full_context = f"{request.context or ''}\n\n{vector_context}".strip()
+        print("FULL CONTEXT:", full_context)
+        print("HISTORY :", history)
 
         # ── 5. Generate response ───────────────────────────────────
         answer = await llm_client.generate_response(request.question, full_context, history)

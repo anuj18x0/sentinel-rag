@@ -18,7 +18,7 @@ class VectorStore:
         )
         
         # Initialize embedding model
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('BAAI/bge-small-en-v1.5')
         self.collection_name = "monitoring_insights"
         
         # Ensure collection exists
@@ -61,6 +61,6 @@ class VectorStore:
             query=vector,
             limit=limit
         )
-        return [point.payload for point in results.points]
+        return [{"payload": point.payload, "score": point.score} for point in results.points]
 
 vector_store = VectorStore()
