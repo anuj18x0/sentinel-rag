@@ -10,6 +10,7 @@ class VectorStore:
     def __init__(self):
         self.url = os.getenv("QDRANT_URL")
         self.api_key = os.getenv("QDRANT_API_KEY")
+        self.hf_token = os.getenv("HF_TOKEN")
         
         # Initialize client with Cloud credentials
         self.client = QdrantClient(
@@ -18,7 +19,7 @@ class VectorStore:
         )
         
         # Initialize embedding model
-        self.model = SentenceTransformer('BAAI/bge-small-en-v1.5')
+        self.model = SentenceTransformer('BAAI/bge-small-en-v1.5', token=self.hf_token)
         self.collection_name = "monitoring_insights"
         
         # Ensure collection exists
