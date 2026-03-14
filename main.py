@@ -52,6 +52,7 @@ async def query_rag(request: QueryRequest):
         # ── 3. Semantic search in vector store ─────────────────────
         try:
             results = vector_store.search(request.question, limit=3)
+            print("RESULTS", results)
             # Apply similarity threshold
             valid_docs = [r["payload"].get("text", "") for r in results if r["score"] >= 0.7]
             vector_context = "\n".join(valid_docs) if valid_docs else ""
